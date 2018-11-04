@@ -28,8 +28,11 @@ class XMLHandler {
 
   jsonToXml(node, nsContext, descriptor, val) {
     if (node == null) {
-      node = xmlBuilder.begin(
-        {version: '1.0', encoding: 'UTF-8', standalone: true});
+      node = xmlBuilder.begin({
+        version: '1.0',
+        encoding: 'UTF-8',
+        standalone: true
+      });
     }
     if (nsContext == null) {
       nsContext = new NamespaceContext();
@@ -63,13 +66,13 @@ class XMLHandler {
           return node;
         }
       }
-      if(val !== null && typeof val === "object"){
+      if (val !== null && typeof val === "object") {
         // check for $attributes field
-        if (typeof val[this.options.attributesKey] !== "undefined"){
+        if (typeof val[this.options.attributesKey] !== "undefined") {
           attrs = val[this.options.attributesKey];
         }
         // add any $value field as xml element value
-        if (typeof val[this.options.valueKey] !== "undefined"){
+        if (typeof val[this.options.valueKey] !== "undefined") {
           val = val[this.options.valueKey];
         }
       }
@@ -90,7 +93,7 @@ class XMLHandler {
         if (mapping === null || mapping.declared === false) {
           newlyDeclared = true;
           mapping = declareNamespace(nsContext, null,
-          descriptor.qname.prefix, descriptor.qname.nsURI);
+            descriptor.qname.prefix, descriptor.qname.nsURI);
         }
         // add the element to a parent node
         let prefix = mapping ? mapping.prefix : descriptor.qname.prefix;
@@ -104,17 +107,17 @@ class XMLHandler {
       // add the element to a parent node
       if (isSimple && /<!\[CDATA/.test(val)) {
         element = node.element(elementName);
-        val = val.replace("<![CDATA[","");
-        val = val.replace("]]>","");
+        val = val.replace("<![CDATA[", "");
+        val = val.replace("]]>", "");
         element.cdata(val);
-      }else if(isSimple && typeof val !== "undefined" && val !== null 
-        && typeof val[this.options.xmlKey] !== "undefined") {
-        val = val[this.options.xmlKey];        
+      } else if (isSimple && typeof val !== "undefined" && val !== null &&
+        typeof val[this.options.xmlKey] !== "undefined") {
+        val = val[this.options.xmlKey];
         element = node.element(elementName);
         element.raw(val);
-      }else {
+      } else {
         element = isSimple ? node.element(elementName, val) : node.element(elementName);
-      } 
+      }
 
       if (xmlns && descriptor.qname.nsURI) {
         element.attribute(xmlns, descriptor.qname.nsURI);
@@ -140,7 +143,7 @@ class XMLHandler {
           nsContext.popContext();
         }
         return node;
-      } else if ( val != null) {
+      } else if (val != null) {
         let attrs = val[this.options.attributesKey];
         if (typeof attrs === 'object') {
           for (let p in attrs) {
@@ -149,7 +152,7 @@ class XMLHandler {
               if (descriptor instanceof ElementDescriptor) {
                 if (descriptor.refOriginal) {
                   if (descriptor.refOriginal.typeDescriptor) {
-                    if (descriptor.refOriginal.typeDescriptor.inheritance){
+                    if (descriptor.refOriginal.typeDescriptor.inheritance) {
                       let extension = descriptor.refOriginal.typeDescriptor.inheritance[child.type];
                       if (extension) {
                         descriptor.elements = descriptor.elements.concat(extension.elements);
@@ -160,10 +163,10 @@ class XMLHandler {
               }
             }
           }
-        }  
+        }
       }
       //val is not an object - simple or date types
-      if (val != null && ( typeof val !== 'object' || val instanceof Date)) {
+      if (val != null && (typeof val !== 'object' || val instanceof Date)) {
         // for adding a field value nsContext.popContext() shouldnt be called
         element.text(val);
         //add $attributes. Attribute can be an attribute defined in XSD or an xsi:type.
@@ -173,18 +176,18 @@ class XMLHandler {
         }
         if (nameSpaceContextCreated) {
           nsContext.popContext();
-        }  
+        }
         return node;
       }
 
       this.mapObject(element, nsContext, descriptor, val, attrs);
       if (nameSpaceContextCreated) {
         nsContext.popContext();
-      }  
+      }
       return node;
     }
 
-    if (descriptor == null  || descriptor === undefined || descriptor instanceof TypeDescriptor) {
+    if (descriptor == null || descriptor === undefined || descriptor instanceof TypeDescriptor) {
       this.mapObject(node, nsContext, descriptor, val);
       return node;
     }
@@ -216,9 +219,11 @@ class XMLHandler {
             var xsiTypeInfo =
               schema.complexTypes[xsiType.name] ||
               schema.simpleTypes[xsiType.name];
-            // The type might not be described  
-            // describe() takes wsdl definitions  
-            xsiTypeDescriptor = xsiTypeInfo && xsiTypeInfo.describe({schemas: this.schemas});
+            // The type might not be described
+            // describe() takes wsdl definitions
+            xsiTypeDescriptor = xsiTypeInfo && xsiTypeInfo.describe({
+              schemas: this.schemas
+            });
           }
           break;
         }
@@ -238,7 +243,7 @@ class XMLHandler {
     const keys = Object.keys(val);
     var names = [].concat(keys).sort((n1, n2) => {
       let result = compare(n1, n2, elementOrder);
-      if (result ===0) {
+      if (result === 0) {
         result = compare(n1, n2, keys);
       }
       return result;
@@ -265,7 +270,8 @@ class XMLHandler {
     var xsiType = this.getXsiType(descriptor, attrs);
     descriptor = xsiType || descriptor;
 
-    var elements = {}, attributes = {};
+    var elements = {},
+      attributes = {};
     var elementOrder = [];
     if (descriptor != null) {
       for (let i = 0, n = descriptor.elements.length; i < n; i++) {
@@ -284,25 +290,25 @@ class XMLHandler {
       }
     }
 
-    // handle later if value is an array 
+    // handle later if value is an array
     if (!Array.isArray(val)) {
       const names = this._sortKeys(val, elementOrder);
       for (let p of names) {
         if (p === this.options.attributesKey)
           continue;
-	      let child = val[p];
-	      let childDescriptor = elements[p] || attributes[p];
-	      if (childDescriptor == null) {
-	        if (this.options.ignoreUnknownProperties) 
+        let child = val[p];
+        let childDescriptor = elements[p] || attributes[p];
+        if (childDescriptor == null) {
+          if (this.options.ignoreUnknownProperties)
             continue;
-          else 
+          else
             childDescriptor = new ElementDescriptor(
               QName.parse(p), null, 'unqualified', Array.isArray(child));
         }
         if (childDescriptor) {
           this.jsonToXml(node, nsContext, childDescriptor, child);
-        }	
-	    }
+        }
+      }
     }
 
     this.addAttributes(node, nsContext, descriptor, val, attrs);
@@ -323,7 +329,7 @@ class XMLHandler {
         // if field is $xsiType add xsi:type attribute
         if (p === this.options.xsiTypeKey) {
           let xsiType;
-          if(typeof child === 'object' && typeof child.type !== 'undefined') {
+          if (typeof child === 'object' && typeof child.type !== 'undefined') {
             // $xsiType has two fields - type, xmlns
             xsiType = QName.parse(child.type, child.xmlns);
           } else {
@@ -352,8 +358,11 @@ class XMLHandler {
 
   static createSOAPEnvelope(prefix, nsURI) {
     prefix = prefix || 'soap';
-    var doc = xmlBuilder.create(prefix + ':Envelope',
-      {version: '1.0', encoding: 'UTF-8', standalone: true});
+    var doc = xmlBuilder.create(prefix + ':Envelope', {
+      version: '1.0',
+      encoding: 'UTF-8',
+      standalone: true
+    });
     nsURI = nsURI || 'http://schemas.xmlsoap.org/soap/envelope/'
     doc.attribute('xmlns:' + prefix,
       nsURI);
@@ -427,10 +436,18 @@ class XMLHandler {
     debug('XMLHandler parseXML. root: %j xml: %j', root, xml);
     if (typeof xml === 'string') {
       stringMode = true;
-      parser = sax.parser(true, {opt: {xmlns: true}});
+      parser = sax.parser(true, {
+        opt: {
+          xmlns: true
+        }
+      });
     } else if (xml instanceof stream.Readable) {
       stringMode = false;
-      parser = sax.createStream(true, {opt: {xmlns: true}});
+      parser = sax.createStream(true, {
+        opt: {
+          xmlns: true
+        }
+      });
     }
     if (!root) {
       root = xmlBuilder.begin();
@@ -517,8 +534,13 @@ class XMLHandler {
     var p = sax.parser(true);
     nsContext = nsContext || new NamespaceContext();
     var root = {};
-    var refs = {}, id; // {id: {hrefs:[], obj:}, ...}
-    var stack = [{name: null, object: root, descriptor: descriptor}];
+    var refs = {},
+      id; // {id: {hrefs:[], obj:}, ...}
+    var stack = [{
+      name: null,
+      object: root,
+      descriptor: descriptor
+    }];
     var options = this.options;
 
     p.onopentag = function(node) {
@@ -559,9 +581,9 @@ class XMLHandler {
             xsiType = attrs[a];
             xsiType = QName.parse(xsiType);
             attrs[a] = xsiType.name;
-            if(xsiType.prefix){
+            if (xsiType.prefix) {
               xsiXmlns = nsContext.getNamespaceURI(xsiType.prefix);
-            }  
+            }
           }
         }
         let attrName = qname.name;
@@ -592,16 +614,24 @@ class XMLHandler {
       if (attrs.href != null) {
         id = attrs.href.substr(1);
         if (refs[id] === undefined) {
-          refs[id] = {hrefs: [], object: null};
+          refs[id] = {
+            hrefs: [],
+            object: null
+          };
         }
         refs[id].hrefs.push({
-          parent: top.object, key: elementQName.name, object: obj
+          parent: top.object,
+          key: elementQName.name,
+          object: obj
         });
       }
       id = attrs.id;
       if (id != null) {
         if (refs[id] === undefined)
-          refs[id] = {hrefs: [], object: null};
+          refs[id] = {
+            hrefs: [],
+            object: null
+          };
       }
 
       stack.push({
@@ -656,7 +686,7 @@ class XMLHandler {
       var top = stack[stack.length - 1];
       self._processText(top, text);
     };
-    
+
     p.ontext = function(text) {
       text = text && text.trim();
       if (!text.length)
@@ -715,13 +745,13 @@ class XMLHandler {
 
 function getSoap11FaultErrorMessage(faultBody) {
   var errorMessage = null;
-  var faultcode = selectn('faultcode.$value', faultBody)||
+  var faultcode = selectn('faultcode.$value', faultBody) ||
     selectn('faultcode', faultBody);
   if (faultcode) { //soap 1.1 fault
     errorMessage = ' ';
     //All of the soap 1.1 fault elements should contain string value except detail element which may be a complex type or plain text (string)
     if (typeof faultcode == 'string') {
-      errorMessage =  'faultcode: ' + faultcode;
+      errorMessage = 'faultcode: ' + faultcode;
     }
     var faultstring = selectn('faultstring.$value', faultBody) ||
       selectn('faultstring', faultBody);
@@ -748,7 +778,7 @@ function getSoap11FaultErrorMessage(faultBody) {
 
 function getSoap12FaultErrorMessage(faultBody) {
   var errorMessage = null;
-  let code = selectn('Code', faultBody)||
+  let code = selectn('Code', faultBody) ||
     selectn('Code', faultBody);
   if (code) {
     //soap 1.2 fault elements have child elements. Hence use JSON.stringify to formulate the error message.
@@ -800,7 +830,7 @@ function declareNamespace(nsContext, node, prefix, nsURI) {
   } else if (node) {
     node.attribute('xmlns:' + mapping.prefix, mapping.uri);
     return mapping;
-  } 
+  }
   return mapping;
 }
 
@@ -809,9 +839,14 @@ function parseValue(text, descriptor) {
   var value = text;
   var jsType = descriptor && descriptor.jsType;
   if (jsType === Date) {
-    value = new Date(text);
+    // Take into account timezone offsets
+    if (text.length == 16) {
+      value = new Date(text.substr(0, 10));
+    } else
+      value = new Date(text);
   } else if (jsType === Boolean) {
-    if (text === 'true') {
+    // Take into account 1 and 0 as boolean values
+    if (text === 'true' || text === '1') {
       value = true;
     } else {
       value = false;
